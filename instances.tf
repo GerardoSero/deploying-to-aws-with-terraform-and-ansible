@@ -43,7 +43,7 @@ resource "aws_instance" "jenkins_main" {
   provisioner "local-exec" {
     command = <<EOF
 aws --profile ${var.profile} ec2 wait instance-status-ok --region ${var.region_main} --instance-ids ${self.id}
-ansible-playbook --extra-vars 'passed_in_hosts=tag_Name_${self.tags.Name}' ansible_templates/install_jenkins_master.yaml
+AWS_PROFILE=${var.profile} ansible-playbook --extra-vars 'passed_in_hosts=tag_Name_${self.tags.Name}' ansible_templates/install_jenkins_master.yaml
 EOF
   }
 }
@@ -69,7 +69,7 @@ resource "aws_instance" "jenkins_worker" {
   provisioner "local-exec" {
     command = <<EOF
 aws --profile ${var.profile} ec2 wait instance-status-ok --region ${var.region_worker} --instance-ids ${self.id}
-ansible-playbook --extra-vars 'passed_in_hosts=tag_Name_${self.tags.Name} master_ip=${aws_instance.jenkins_main.private_ip}' ansible_templates/install_jenkins_worker.yaml
+AWS_PROFILE=${var.profile} ansible-playbook --extra-vars 'passed_in_hosts=tag_Name_${self.tags.Name} master_ip=${aws_instance.jenkins_main.private_ip}' ansible_templates/install_jenkins_worker.yaml
 EOF
   }
 
