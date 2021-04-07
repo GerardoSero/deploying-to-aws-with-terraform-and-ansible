@@ -1,7 +1,7 @@
 # Create security group for load balancer, only TCP/80, TCP/443 and outbound access
-resource "aws_security_group" "lb-sg" {
-  provider    = aws.region-main
-  name        = "lb-sg"
+resource "aws_security_group" "lb_sg" {
+  provider    = aws.region_main
+  name        = "lb_sg"
   description = "Allow 443 and traffic to Jenkins SG"
   vpc_id      = aws_vpc.vpc_main.id
   ingress {
@@ -27,9 +27,9 @@ resource "aws_security_group" "lb-sg" {
 }
 
 # Create security group for allowing TCP/8080 from * and TCP/22 from you IP in us-east-1
-resource "aws_security_group" "jenkins-sg" {
-  provider    = aws.region-main
-  name        = "jenkins-sg"
+resource "aws_security_group" "jenkins_sg" {
+  provider    = aws.region_main
+  name        = "jenkins_sg"
   description = "Allow TCP/8080 & TCP/22"
   vpc_id      = aws_vpc.vpc_main.id
   ingress {
@@ -41,10 +41,10 @@ resource "aws_security_group" "jenkins-sg" {
   }
   ingress {
     description     = "Allow anyone on port 8080"
-    from_port       = var.webserver-port
-    to_port         = var.webserver-port
+    from_port       = var.webserver_port
+    to_port         = var.webserver_port
     protocol        = "tcp"
-    security_groups = [aws_security_group.lb-sg.id]
+    security_groups = [aws_security_group.lb_sg.id]
   }
   ingress {
     description = "Allow traffic from us-west-2"
@@ -62,9 +62,9 @@ resource "aws_security_group" "jenkins-sg" {
 }
 
 # Create security group for allowing TCP/22 from you IP in us-west-2
-resource "aws_security_group" "jenkins-sg-oregon" {
-  provider    = aws.region-worker
-  name        = "jenkins-sg-oregon"
+resource "aws_security_group" "jenkins_sg_oregon" {
+  provider    = aws.region_worker
+  name        = "jenkins_sg_oregon"
   description = "Allow TCP/8080 & TCP/22"
   vpc_id      = aws_vpc.vpc_main_oregon.id
   ingress {

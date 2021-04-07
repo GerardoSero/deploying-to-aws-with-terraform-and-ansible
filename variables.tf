@@ -3,12 +3,12 @@ variable "profile" {
   default = "default"
 }
 
-variable "region-main" {
+variable "region_main" {
   type    = string
   default = "us-east-1"
 }
 
-variable "region-worker" {
+variable "region_worker" {
   type    = string
   default = "us-west-2"
 }
@@ -28,15 +28,11 @@ variable "instance_type" {
   default = "t3.micro"
 }
 
-variable "webserver-port" {
+variable "webserver_port" {
   type    = number
   default = 8080
 }
 
-variable "dns-name" {
-  type    = string
-}
-
-output "public_url" {
-  value = aws_route53_record.jenkins.fqdn
+variable "dns_name" {
+  type = string
 }
