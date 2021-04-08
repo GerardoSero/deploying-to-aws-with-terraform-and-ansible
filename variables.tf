@@ -3,12 +3,12 @@ variable "profile" {
   default = "default"
 }
 
-variable "region_main" {
+variable "main_region" {
   type    = string
   default = "us-east-1"
 }
 
-variable "region_worker" {
+variable "worker_region" {
   type    = string
   default = "us-west-2"
 }
@@ -20,7 +20,7 @@ variable "external_ip" {
 
 variable "workers_count" {
   type    = number
-  default = 2
+  default = 1
 }
 
 variable "instance_type" {

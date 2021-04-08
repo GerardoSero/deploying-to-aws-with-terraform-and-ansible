@@ -1,5 +1,5 @@
 resource "aws_vpc" "vpc_main_oregon" {
-  provider             = aws.region_worker
+  provider             = aws.worker_region
   cidr_block           = "192.168.0.0/16"
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -9,18 +9,18 @@ resource "aws_vpc" "vpc_main_oregon" {
 }
 
 resource "aws_internet_gateway" "igw_oregon" {
-  provider = aws.region_worker
+  provider = aws.worker_region
   vpc_id   = aws_vpc.vpc_main_oregon.id
 }
 
 resource "aws_subnet" "subnet_1_oregon" {
-  provider   = aws.region_worker
+  provider   = aws.worker_region
   vpc_id     = aws_vpc.vpc_main_oregon.id
   cidr_block = "192.168.1.0/24"
 }
 
 resource "aws_route_table" "internet_route_oregon" {
-  provider = aws.region_worker
+  provider = aws.worker_region
   vpc_id   = aws_vpc.vpc_main_oregon.id
   route {
     cidr_block = "0.0.0.0/0"
@@ -39,14 +39,14 @@ resource "aws_route_table" "internet_route_oregon" {
 }
 
 resource "aws_main_route_table_association" "set_worker_default_rt_assoc" {
-  provider       = aws.region_worker
+  provider       = aws.worker_region
   vpc_id         = aws_vpc.vpc_main_oregon.id
   route_table_id = aws_route_table.internet_route_oregon.id
 }
 
 # Create security group for allowing TCP/22 from you IP in us-west-2
 resource "aws_security_group" "jenkins_sg_oregon" {
-  provider    = aws.region_worker
+  provider    = aws.worker_region
   name        = "jenkins_sg_oregon"
   description = "Allow TCP/8080 & TCP/22"
   vpc_id      = aws_vpc.vpc_main_oregon.id

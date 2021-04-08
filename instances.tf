@@ -1,32 +1,32 @@
 # Get Linux AMI ID using SSM Parameter endpoint in us-east-1
 data "aws_ssm_parameter" "linuxAmi" {
-  provider = aws.region_main
+  provider = aws.main_region
   name     = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
 }
 
 # Get Linux AMI ID using SSM Parameter endpoint in us-west-2
 data "aws_ssm_parameter" "linuxAmiOregon" {
-  provider = aws.region_worker
+  provider = aws.worker_region
   name     = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
 }
 
 # Create key-pair for logging into EC2 in us-east-1
 resource "aws_key_pair" "main_key" {
-  provider   = aws.region_main
+  provider   = aws.main_region
   key_name   = "jenkins"
   public_key = file("~/.ssh/id_rsa.pub")
 }
 
 # Create key-pair for logging into EC2 in us-west-2
 resource "aws_key_pair" "worker_key" {
-  provider   = aws.region_worker
+  provider   = aws.worker_region
   key_name   = "jenkins"
   public_key = file("~/.ssh/id_rsa.pub")
 }
 
 # Create and bootstrap EC2 in us-east-1
 resource "aws_instance" "jenkins_main" {
-  provider                    = aws.region_main
+  provider                    = aws.main_region
   ami                         = data.aws_ssm_parameter.linuxAmi.value
   instance_type               = var.instance_type
   key_name                    = aws_key_pair.main_key.key_name
@@ -42,7 +42,7 @@ resource "aws_instance" "jenkins_main" {
 
   provisioner "local-exec" {
     command = <<EOF
-aws --profile ${var.profile} ec2 wait instance-status-ok --region ${var.region_main} --instance-ids ${self.id}
+aws --profile ${var.profile} ec2 wait instance-status-ok --region ${var.main_region} --instance-ids ${self.id}
 AWS_PROFILE=${var.profile} ansible-playbook --extra-vars 'passed_in_hosts=tag_Name_${self.tags.Name}' ansible_templates/install_jenkins_master.yaml
 EOF
   }
@@ -50,7 +50,7 @@ EOF
 
 # Create and bootstrap EC2 in us-west-2
 resource "aws_instance" "jenkins_worker" {
-  provider                    = aws.region_worker
+  provider                    = aws.worker_region
   count                       = var.workers_count
   ami                         = data.aws_ssm_parameter.linuxAmiOregon.value
   instance_type               = var.instance_type
@@ -68,7 +68,7 @@ resource "aws_instance" "jenkins_worker" {
 
   provisioner "local-exec" {
     command = <<EOF
-aws --profile ${var.profile} ec2 wait instance-status-ok --region ${var.region_worker} --instance-ids ${self.id}
+aws --profile ${var.profile} ec2 wait instance-status-ok --region ${var.worker_region} --instance-ids ${self.id}
 AWS_PROFILE=${var.profile} ansible-playbook --extra-vars 'passed_in_hosts=tag_Name_${self.tags.Name} master_ip=${aws_instance.jenkins_main.private_ip}' ansible_templates/install_jenkins_worker.yaml
 EOF
   }

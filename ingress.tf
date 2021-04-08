@@ -1,5 +1,5 @@
 resource "aws_lb" "application_lb" {
-  provider           = aws.region_main
+  provider           = aws.main_region
   name               = "jenkins-lb"
   internal           = false
   load_balancer_type = "application"
@@ -11,7 +11,7 @@ resource "aws_lb" "application_lb" {
 }
 
 resource "aws_lb_target_group" "app_lb_tg" {
-  provider    = aws.region_main
+  provider    = aws.main_region
   name        = "app-lb-tg"
   port        = var.webserver_port
   target_type = "instance"
@@ -32,7 +32,7 @@ resource "aws_lb_target_group" "app_lb_tg" {
 }
 
 resource "aws_lb_listener" "jenkins_listener_http" {
-  provider          = aws.region_main
+  provider          = aws.main_region
   load_balancer_arn = aws_lb.application_lb.arn
   port              = "80"
   protocol          = "HTTP"
@@ -44,7 +44,7 @@ resource "aws_lb_listener" "jenkins_listener_http" {
 
 #Create new listener on tcp/443 HTTPS
 resource "aws_lb_listener" "jenkins_listener_https" {
-  provider          = aws.region_main
+  provider          = aws.main_region
   load_balancer_arn = aws_lb.application_lb.arn
   ssl_policy        = "ELBSecurityPolicy-2016-08"
   port              = "443"
@@ -57,7 +57,7 @@ resource "aws_lb_listener" "jenkins_listener_https" {
 }
 
 resource "aws_lb_target_group_attachment" "jenkins_master_attach" {
-  provider         = aws.region_main
+  provider         = aws.main_region
   target_group_arn = aws_lb_target_group.app_lb_tg.arn
   target_id        = aws_instance.jenkins_main.id
   port             = var.webserver_port
@@ -65,7 +65,7 @@ resource "aws_lb_target_group_attachment" "jenkins_master_attach" {
 
 #Creates ACM certificate and requests validation via DNS(Route53)
 resource "aws_acm_certificate" "jenkins_lb_https" {
-  provider          = aws.region_main
+  provider          = aws.main_region
   domain_name       = join(".", ["jenkins", data.aws_route53_zone.dns.name])
   validation_method = "DNS"
   tags = {
@@ -75,7 +75,7 @@ resource "aws_acm_certificate" "jenkins_lb_https" {
 
 #Validates ACM issued certificate via Route53
 resource "aws_acm_certificate_validation" "cert" {
-  provider                = aws.region_main
+  provider                = aws.main_region
   certificate_arn         = aws_acm_certificate.jenkins_lb_https.arn
   for_each                = aws_route53_record.cert_validation
   validation_record_fqdns = [aws_route53_record.cert_validation[each.key].fqdn]
@@ -83,12 +83,12 @@ resource "aws_acm_certificate_validation" "cert" {
 
 #Get already, publicly configured Hosted Zone on Route53 - MUST EXIST
 data "aws_route53_zone" "dns" {
-  provider = aws.region_main
+  provider = aws.main_region
   name     = var.dns_name
 }
 
 resource "aws_route53_record" "cert_validation" {
-  provider = aws.region_main
+  provider = aws.main_region
 
   for_each = {
     for val in aws_acm_certificate.jenkins_lb_https.domain_validation_options : val.domain_name => {
@@ -107,7 +107,7 @@ resource "aws_route53_record" "cert_validation" {
 
 #Create Alias record towards ALB from Route53
 resource "aws_route53_record" "jenkins" {
-  provider = aws.region_main
+  provider = aws.main_region
   zone_id  = data.aws_route53_zone.dns.zone_id
   name     = join(".", ["jenkins", data.aws_route53_zone.dns.name])
   type     = "A"
@@ -120,7 +120,7 @@ resource "aws_route53_record" "jenkins" {
 
 # Create security group for load balancer, only TCP/80, TCP/443 and outbound access
 resource "aws_security_group" "lb_sg" {
-  provider    = aws.region_main
+  provider    = aws.main_region
   name        = "lb_sg"
   description = "Allow 443 and traffic to Jenkins SG"
   vpc_id      = aws_vpc.vpc_main.id
